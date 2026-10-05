@@ -1,0 +1,104 @@
+<!--
+  ~ Copyright 2013-2026, Seqera Labs
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<pre class="mermaid" style="text-align: center;">
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#B6ECE2',
+      'primaryTextColor': '#160F26',
+      'primaryBorderColor': '#065647',
+      'lineColor': '#545555',
+      'clusterBkg': '#BABCBD22',
+      'clusterBorder': '#DDDEDE',
+      'fontFamily': 'arial'
+    }
+  }
+}%%
+flowchart TB
+    subgraph " "
+    v0["channel.empty"]
+    v2["channel.fromList"]
+    v7["channel.fromPath"]
+    v11["channel.empty"]
+    v12["channel.empty"]
+    v18[" "]
+    v28["channel.of"]
+    v33[" "]
+    v36[" "]
+    v50["channel.empty"]
+    end
+    subgraph " "
+    v1["versions"]
+    v10["ch_samplesheet"]
+    v14[" "]
+    v15[" "]
+    v43[" "]
+    v44[" "]
+    v45[" "]
+    v49[" "]
+    v51[" "]
+    end
+    subgraph "NFCORE_RNASEQGANGGANGGANG [NFCORE_RNASEQGANGGANGGANG]"
+    subgraph "NFCORE_RNASEQGANGGANGGANG:RNASEQGANGGANGGANG [RNASEQGANGGANGGANG]"
+    v13(["FASTQC"])
+    v42(["MULTIQC"])
+    v16(( ))
+    v46(( ))
+    end
+    end
+    subgraph "PIPELINE_INITIALISATION [PIPELINE_INITIALISATION]"
+    v3(( ))
+    end
+    v8(( ))
+    subgraph "PIPELINE_COMPLETION [PIPELINE_COMPLETION]"
+    v48(( ))
+    end
+    v0 --> v1
+    v2 --> v3
+    v7 --> v8
+    v8 --> v10
+    v11 --> v16
+    v12 --> v16
+    v3 --> v13
+    v13 --> v15
+    v13 --> v14
+    v13 --> v16
+    v18 --> v16
+    v28 --> v16
+    v33 --> v16
+    v36 --> v16
+    v16 --> v42
+    v42 --> v45
+    v42 --> v44
+    v42 --> v43
+    v42 --> v46
+    v48 --> v49
+    v50 --> v51
+    v46 --> v48
+
+</pre>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, maxTextSize: Number.MAX_SAFE_INTEGER, maxEdges: Number.MAX_SAFE_INTEGER });
+</script>
+</body>
+</html>
