@@ -1,0 +1,17 @@
+repository_type: pipeline
+
+nf_core_version: 4.1.0
+
+lint: {}
+
+template:
+  org: nf-core
+  name: rnaseqgangganggang
+  description: blabla
+  author: peter, anna
+  version: 1.0.0dev
+  force: true
+  outdir: .
+  skip_features:
+    - gpu
+  is_nfcore: true
