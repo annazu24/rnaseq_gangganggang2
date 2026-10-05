@@ -20,6 +20,7 @@ include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_rnas
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_rnaseqgangganggang_pipeline'
 include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_rnaseqgangganggang_pipeline'
 
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     GENOME PARAMETER VALUES
@@ -29,7 +30,8 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_rnas
 // TODO nf-core: Remove this line if you don't need a FASTA file
 //   This is an example of how to use getGenomeAttribute() to fetch parameters
 //   from igenomes.config using `--genome`
-params.fasta = getGenomeAttribute('fasta')
+    params.fasta = getGenomeAttribute('fasta')
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,6 +85,20 @@ workflow {
         params.help_full,
         params.show_hidden
     )
+
+    // read in sample sheet
+    ch_samplesheet = channel.fromPath(params.input)
+        .splitCsv(header: true)
+        .map { row ->
+            def meta  = [id: row.sample, strandedness: row.strandedness]
+            def reads = [
+                file(row.fastq_1, checkIfExists: true),
+                file(row.fastq_2, checkIfExists: true)
+            ]
+            [meta, reads]
+        }
+
+
 
     //
     // WORKFLOW: Run main workflow
