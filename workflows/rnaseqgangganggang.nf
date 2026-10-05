@@ -10,6 +10,15 @@ include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pi
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_rnaseqgangganggang_pipeline'
 
+include { TRIMGALORE             } from '../modules/nf-core/trimgalore/main'
+include { STAR_GENOMEGENERATE    } from '../modules/nf-core/star/genomegenerate/main'
+include { STAR_ALIGN             } from '../modules/nf-core/star/align/main'
+include { SALMON_INDEX           } from '../modules/nf-core/salmon/index/main'
+include { SALMON_QUANT           } from '../modules/nf-core/salmon/quant/main'
+include { PICARD_MARKDUPLICATES  } from '../modules/nf-core/picard/markduplicates/main' 
+include { BBMAP_BBSPLIT          } from '../modules/nf-core/bbmap/bbsplit/main' 
+include { SORTMERNA              } from '../modules/nf-core/sortmerna/main'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
