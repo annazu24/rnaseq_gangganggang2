@@ -44,13 +44,13 @@ workflow RNASEQGANGGANGGANG {
     FASTQC(ch_samplesheet)
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.map{ _meta, file -> file })
 
+    
 
     // MODULE: Run Trim Galore
     //
     TRIMGALORE(ch_samplesheet)
     ch_trimmed_out = TRIMGALORE.out.reads
     ch_multiqc_files = ch_multiqc_files.mix(TRIMGALORE.out.json.map{ _meta, file -> file })
-
 
 
     // MODULE: Run BBSplit
@@ -60,22 +60,40 @@ workflow RNASEQGANGGANGGANG {
     ch_bbsplit_index = channel.value([])
     //
     //contamination fasta:
-    ch_bbsplit_other_ref_paths = channel.value(file(params.bbsplit_other_ref))
-    ch_bbsplit_other_ref_names = channel.value(["contaminant"])
-    cc_bbsplit_only_build_index = channel.value("false")
+    // REad in Csv file and parse into single commands
+    ch_bbsplit_contam = params.bbsplit_fasta_list ? 
+        channel.value(
+            file(params.bbsplit_fasta_list)
+                .readLines()
+                .findAll { it.trim() }
+                .collect { line -> line.split(',') }
+                .with { lines ->
+                    def names = lines.collect { it[0].trim() }
+                    def paths = lines.collect { file(it[1].trim()) }
+                    return [ names, paths ]
+                }
+        ) : 
+        channel.value([ [], [] ])
+
+    //ch_bbsplit_contam = channel.value(file(params.bbsplit_fasta_list))
 
     //primary ref:
-    ch_bbsplit_primary_ref = channel.value(file(params.bbsplit_primary_ref))
+    ch_bbsplit_primary_ref = channel.value(file(params.fasta))
+
+    //only build index:
+    ch_only_build_index = false
 
     // test:
     // primary ref mouse chr 19
     //contaminants list
     //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
     //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
-    //
-    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_other_ref_names, ch_bbsplit_other_ref_paths, ch_bbsplit_only_build_index)
+
+
+    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_contam, ch_only_build_index)
     ch_bbsplit_out = BBMAP_BBSPLIT.out.primary_fastq
     ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
+
 
 
     // MODULE: Run sortmerna
@@ -83,7 +101,7 @@ workflow RNASEQGANGGANGGANG {
     // INPUT
     //
     //reads, fastas, index
-    ch_sortmerna_fastas = channel.value([[id:'ref'],[file(params.sortmerna_fastas)]])
+    ch_sortmerna_fastas = channel.value([[id:'rRNA_ref'], files(params.sortmerna_fastas, checkIfExists: true)])
     ch_sortmerna_index = channel.value([[id:'ref'],[]])
     //
     SORTMERNA(ch_bbsplit_out, ch_sortmerna_fastas, ch_sortmerna_index)
@@ -115,15 +133,16 @@ workflow RNASEQGANGGANGGANG {
     //
     STAR_ALIGN(ch_sortmerna_out, ch_star_index, ch_star_gtf, ch_star_ignore_sjdbgtf)
     //bam transcript for salmon
-    ch_star_out = STAR_ALIGN.out.
+    //ch_star_out = STAR_ALIGN.out.
     ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN.out.log_final.map { _meta, file -> file })
 
     //bam for pic MarkDups:.
     ch_star_bam = STAR_ALIGN.out.bam_transcript
 
+/*
+Testen
 
-
-    // MODULE: Run salmon
+   // MODULE: Run salmon
     //
     //INPUT
     //
@@ -150,6 +169,7 @@ workflow RNASEQGANGGANGGANG {
 
 
 
+    */
 
     //
     // Collate and save software versions
