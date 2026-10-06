@@ -44,6 +44,67 @@ workflow RNASEQGANGGANGGANG {
     FASTQC(ch_samplesheet)
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.map{ _meta, file -> file })
 
+
+    // MODULE: Run Trim Galore
+    //
+    TRIMGALORE(ch_samplesheet)
+    ch_trimmed_out = TRIMGALORE.out.reads
+    ch_multiqc_files = ch_multiqc_files.mix(TRIMGALORE.out.json.map{ _meta, file -> file })
+
+    // MODULE: Run BBSplit
+    //
+    // INPUT
+    //
+    ch_bbsplit_index = channel.value([])
+    //
+    //contamination fasta:
+    ch_bbsplit_contam = channel.value(["contaminant"][file(params.bbsplit_other_ref)])
+
+    //primary ref:
+    ch_bbsplit_primary_ref = channel.value(file(params.bbsplit_primary_ref))
+
+    // test:
+    // primary ref mouse chr 19
+    //contaminants list
+    //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
+    //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
+
+
+    BBMAP_BBSPLIT(ch_trimmed_out, )
+    ch_bbsplit_out = bbmap_bbsplit.out.primary_fastq
+
+
+    // MODULE: Run sortmerna
+    //
+    // INPUT
+    //
+    //
+    //
+    SORTMERNA(ch_bbsplit_out,)
+
+    // MODULE: Run star
+    //
+    //
+
+    // MODULE: Run salmon
+    //
+    //
+
+    // MODULE: Run picard MarkDuplicates
+    //
+    //
+
+    // MODULE: Run samtools ???
+    //
+    //
+
+    // MODULE: Run 
+    //
+    //
+
+
+
+
     //
     // Collate and save software versions
     //
