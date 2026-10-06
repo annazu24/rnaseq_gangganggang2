@@ -51,6 +51,8 @@ workflow RNASEQGANGGANGGANG {
     ch_trimmed_out = TRIMGALORE.out.reads
     ch_multiqc_files = ch_multiqc_files.mix(TRIMGALORE.out.json.map{ _meta, file -> file })
 
+
+
     // MODULE: Run BBSplit
     //
     // INPUT
@@ -58,7 +60,9 @@ workflow RNASEQGANGGANGGANG {
     ch_bbsplit_index = channel.value([])
     //
     //contamination fasta:
-    ch_bbsplit_contam = channel.value(file(params.bbsplit_other_ref))
+    ch_bbsplit_other_ref_paths = channel.value(file(params.bbsplit_other_ref))
+    ch_bbsplit_other_ref_names = channel.value(["contaminant"])
+    cc_bbsplit_only_build_index = channel.value("false")
 
     //primary ref:
     ch_bbsplit_primary_ref = channel.value(file(params.bbsplit_primary_ref))
@@ -68,10 +72,9 @@ workflow RNASEQGANGGANGGANG {
     //contaminants list
     //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
     //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
-
-
-    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_primary_ref, ch_bbsplit_contam, )
-    ch_bbsplit_out = bbmap_bbsplit.out.primary_fastq
+    //
+    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_other_ref_names, ch_bbsplit_other_ref_paths, ch_bbsplit_only_build_index)
+    ch_bbsplit_out = BBMAP_BBSPLIT.out.primary_fastq
     ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
 
 
@@ -83,17 +86,55 @@ workflow RNASEQGANGGANGGANG {
     ch_sortmerna_fastas = channel.value([[id:'ref'],[file(params.sortmerna_fastas)]])
     ch_sortmerna_index = channel.value([[id:'ref'],[]])
     //
-    SORTMERNA(ch_bbsplit_out,)
-    ch_sortmerna_out = 
+    SORTMERNA(ch_bbsplit_out, ch_sortmerna_fastas, ch_sortmerna_index)
+    ch_sortmerna_out = SORTMERNA.out.reads
     ch_multiqc_files = ch_multiqc_files.mix(SORTMERNA.out.log.map { _meta, file -> file })
 
-    // MODULE: Run star
+
+    // MODULE: Run star_genomegenerate
     //
+    // INPUT
     //
+    // fasta, gtf
+    ch_star_fasta = channel.value([[id: 'ref'],file(params.fasta)])
+    ch_star_gtf = channel.value([[id: 'ref'],file(params.gtf)])
+    //
+    STAR_GENOMEGENERATE(ch_star_fasta, ch_star_gtf)
+    ch_star_index = STAR_GENOMEGENERATE.out.index
+
+
+
+    // MODULE: Run star_align
+    //
+    // INPUT
+    //
+    // index, gtf, fasta reference, reads, star_ignorme ->false
+    ch_star_ignore_sjdbgtf = channel.value(false)
+    ch_star_gtf = channel.value([[id: 'ref'],[file(params.gtf)]])
+    ch_star_fasta = channel.value([[id: 'ref'],file(params.fasta)])
+    //
+    STAR_ALIGN(ch_sortmerna_out, ch_star_index, ch_star_gtf, ch_star_ignore_sjdbgtf)
+    //bam transcript for salmon
+    ch_star_out = STAR_ALIGN.out.
+    ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN.out.log_final.map { _meta, file -> file })
+
+    //bam for pic MarkDups:.
+    ch_star_bam = STAR_ALIGN.out.bam_transcript
+
+
 
     // MODULE: Run salmon
     //
+    //INPUT
     //
+    //reads, index, gtf, transcript_fasta
+    ch_salmon_index = channel.value([])
+    ch_salmon_gtf = channel.value(file(params.gtf))
+
+    //
+    SALMON_QUANT()
+    ch_salmon_out = 
+    ch_multiqc_files = ch_multiqc_files.mix()
 
     // MODULE: Run picard MarkDuplicates
     //
