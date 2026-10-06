@@ -58,7 +58,7 @@ workflow RNASEQGANGGANGGANG {
     ch_bbsplit_index = channel.value([])
     //
     //contamination fasta:
-    ch_bbsplit_contam = channel.value(["contaminant"][file(params.bbsplit_other_ref)])
+    ch_bbsplit_contam = channel.value(file(params.bbsplit_other_ref))
 
     //primary ref:
     ch_bbsplit_primary_ref = channel.value(file(params.bbsplit_primary_ref))
@@ -70,17 +70,22 @@ workflow RNASEQGANGGANGGANG {
     //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
 
 
-    BBMAP_BBSPLIT(ch_trimmed_out, )
+    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_primary_ref, ch_bbsplit_contam, )
     ch_bbsplit_out = bbmap_bbsplit.out.primary_fastq
+    ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
 
 
     // MODULE: Run sortmerna
     //
     // INPUT
     //
-    //
+    //reads, fastas, index
+    ch_sortmerna_fastas = channel.value([[id:'ref'],[file(params.sortmerna_fastas)]])
+    ch_sortmerna_index = channel.value([[id:'ref'],[]])
     //
     SORTMERNA(ch_bbsplit_out,)
+    ch_sortmerna_out = 
+    ch_multiqc_files = ch_multiqc_files.mix(SORTMERNA.out.log.map { _meta, file -> file })
 
     // MODULE: Run star
     //
