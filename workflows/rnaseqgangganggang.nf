@@ -18,6 +18,7 @@ include { SALMON_QUANT           } from '../modules/nf-core/salmon/quant/main'
 include { PICARD_MARKDUPLICATES  } from '../modules/nf-core/picard/markduplicates/main' 
 include { BBMAP_BBSPLIT          } from '../modules/nf-core/bbmap/bbsplit/main' 
 include { SORTMERNA              } from '../modules/nf-core/sortmerna/main'
+include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,8 +137,10 @@ workflow RNASEQGANGGANGGANG {
     //ch_star_out = STAR_ALIGN.out.
     ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN.out.log_final.map { _meta, file -> file })
 
-    //bam for pic MarkDups:.
-    ch_star_bam = STAR_ALIGN.out.bam_transcript
+    //bam for pic MarkDups:
+    ch_star_bam = STAR_ALIGN.out.bam_sorted
+    // bam transcripts for saalmon.
+    ch_star_bam_transcript = STAR_ALIGN.out.bam_transcript
 
 /*
 Testen
@@ -149,23 +152,42 @@ Testen
     //reads, index, gtf, transcript_fasta
     ch_salmon_index = channel.value([])
     ch_salmon_gtf = channel.value(file(params.gtf))
+    ch_salmon_transcript_fasta = channel.value(file(params.transcript_fasta))
 
     //
-    SALMON_QUANT()
-    ch_salmon_out = 
+    SALMON_QUANT(ch_star_bam_transcript, ch_salmon_index, ch_salmon_gtf, ch_salmon_transcript_fasta)
+    ch_salmon_out = SALMON_QUANT.out.results
     ch_multiqc_files = ch_multiqc_files.mix()
+
+
+
+    // MODULE: Run SAMTOOLS_FAIDX
+    //
+    // INPUT
+    //
+    // fasta, fai, get_size
+    ch_samtools_fasta = channel.value([file(params.fasta)])
+    ch_samtools_fai = channel.value([])
+    ch_samtools_get_sizes = channel.value(false)
+    //
+    SAMTOOLS_FAIDX(ch_samtools_fasta, ch_samtools_fai, ch_samtools_get_sizes)
+    ch_samtools_fa_index = SAMTOOLS_FAIDX.out.fai
+
+
 
     // MODULE: Run picard MarkDuplicates
     //
+    // INPUT
     //
-
-    // MODULE: Run samtools ???
+    // reads fasta fai
+    ch_picard_fasta = channel.value(file(params.fasta))
+    //ch_picard_fai = channel.value(file(params.fai))
+    ch_picard_fai = ch_samtools_fa_index
     //
+    PICARD_MARKDUPLICATES(ch_star_bam, ch_picard_fasta, ch_picard_fai)
     //
-
-    // MODULE: Run 
-    //
-    //
+    ch_pic_mark_dups_out = PICARD_MARKDUPLICATES.out.bam
+    ch_multiqc_files = ch_multiqc_files.mix(PICARD_MARKDUPLICATES.out.metrics.map { _meta, file -> file })
 
 
 
