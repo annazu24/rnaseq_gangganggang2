@@ -9,3 +9,5 @@ testing*
 null/
 .lineage/
 assets/reference/Mus_musculus*/
+test_results/
+results_test/
