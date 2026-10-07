@@ -31,7 +31,19 @@
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
      workflows use the "tube map" design for that. See https://nf-co.re/docs/community/brand/workflow-schematics#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+
+![Pipeline metro map](docs/images/metro_map.svg)
+
+<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
+1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+<!-- 2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/)) -->
+2. Adapter and Quality trimming (['TrimGalore!']())
+3. Removal of contaminations (['BBSplit']())
+4. Removal of rRNA (['SortMeRNA']())
+5. Multiple Alignment and Quantification (['STAR']()) and (['Salmon']())
+6. Indexing of Alignments (['SAMtools']())
+7. Marking of Duplicates (['picard MarkDuplictes']())
+8. Present QC for raw reads, ... ([`MultiQC`](http://multiqc.info/))
 
 ## Usage
 
@@ -40,7 +52,7 @@
 
 <!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
      Explain what rows and columns represent. For instance (please edit as appropriate):
-
+-->
 First, prepare a samplesheet with your input data that looks as follows:
 
 `samplesheet.csv`:
@@ -50,9 +62,15 @@ sample,fastq_1,fastq_2
 CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Each row represents a pair of fastq files (paired end).
 
--->
+If you want you can skip Removal of genomic contaminations (['BBSplit']()) and/or Removal of ribosomalRNA (['SortMeRNA']()). Herefore you need an '-params-file' that looks as follows:
+```
+skip_bbsplit: true
+skip_sortmerna: true
+```
+
+
 
 Now, you can run the pipeline using:
 
@@ -63,6 +81,11 @@ nextflow run nf-core/rnaseqgangganggang \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --outdir <OUTDIR>
+   --fasta
+   --gtf
+   --rrna_fasta
+   --bbsplit_primary_ref
+   --bbsplit_other_ref
 ```
 
 > [!WARNING]
