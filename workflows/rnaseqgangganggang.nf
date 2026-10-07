@@ -64,59 +64,65 @@ workflow RNASEQGANGGANGGANG {
 
     // MODULE: Run BBSplit
     //
-    // INPUT
-    //
-    ch_bbsplit_index = channel.value([])
-    //
-    //contamination fasta:
-    // REad in Csv file and parse into single commands
-    ch_bbsplit_contam = params.bbsplit_fasta_list ? 
-        channel.value(
-            file(params.bbsplit_fasta_list)
-                .readLines()
-                .findAll { it.trim() }
-                .collect { line -> line.split(',') }
-                .with { lines ->
-                    def names = lines.collect { it[0].trim() }
-                    def paths = lines.collect { file(it[1].trim()) }
-                    return [ names, paths ]
-                }
-        ) : 
-        channel.value([ [], [] ])
+    if (!params.skip_bbsplit) {
+        // INPUT
+        //
+        ch_bbsplit_index = channel.value([])
+        //
+        //contamination fasta:
+        // REad in Csv file and parse into single commands
+        ch_bbsplit_contam = params.bbsplit_fasta_list ? 
+            channel.value(
+                file(params.bbsplit_fasta_list)
+                    .readLines()
+                    .findAll { it.trim() }
+                    .collect { line -> line.split(',') }
+                    .with { lines ->
+                        def names = lines.collect { it[0].trim() }
+                        def paths = lines.collect { file(it[1].trim()) }
+                        return [ names, paths ]
+                    }
+            ) : 
+            channel.value([ [], [] ])
 
-    //ch_bbsplit_contam = channel.value(file(params.bbsplit_fasta_list))
+        //ch_bbsplit_contam = channel.value(file(params.bbsplit_fasta_list))
 
-    //primary ref:
-    ch_bbsplit_primary_ref = channel.value(file(params.fasta))
+        //primary ref:
+        ch_bbsplit_primary_ref = channel.value(file(params.fasta))
 
-    //only build index:
-    ch_only_build_index = false
+        //only build index:
+        ch_only_build_index = false
 
-    // test:
-    // primary ref mouse chr 19
-    //contaminants list
-    //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
-    //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
+        // test:
+        // primary ref mouse chr 19
+        //contaminants list
+        //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
+        //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
 
 
-    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_contam, ch_only_build_index)
-    ch_bbsplit_out = BBMAP_BBSPLIT.out.primary_fastq
-    ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
-
+        BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_contam, ch_only_build_index)
+        ch_bbsplit_out = BBMAP_BBSPLIT.out.primary_fastq
+        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
+    } else {
+        ch_bbsplit_out = ch_trimmed_out
+    }
 
 
     // MODULE: Run sortmerna
     //
-    // INPUT
-    //
-    //reads, fastas, index
-    ch_sortmerna_fastas = channel.value([[id:'rRNA_ref'], files(params.sortmerna_fastas, checkIfExists: true)])
-    ch_sortmerna_index = channel.value([[id:'ref'],[]])
-    //
-    SORTMERNA(ch_bbsplit_out, ch_sortmerna_fastas, ch_sortmerna_index)
-    ch_sortmerna_out = SORTMERNA.out.reads
-    ch_multiqc_files = ch_multiqc_files.mix(SORTMERNA.out.log.map { _meta, file -> file })
-
+    if(!params.skip_sortmerna){
+        // INPUT
+        //
+        //reads, fastas, index
+        ch_sortmerna_fastas = channel.value([[id:'rRNA_ref'], files(params.sortmerna_fastas, checkIfExists: true)])
+        ch_sortmerna_index = channel.value([[id:'ref'],[]])
+        //
+        SORTMERNA(ch_bbsplit_out, ch_sortmerna_fastas, ch_sortmerna_index)
+        ch_sortmerna_out = SORTMERNA.out.reads
+        ch_multiqc_files = ch_multiqc_files.mix(SORTMERNA.out.log.map { _meta, file -> file })
+    } else {
+        ch_sortmerna_out = ch_bbsplit_out
+    }
 
     // MODULE: Run star_genomegenerate
     //
@@ -146,7 +152,7 @@ workflow RNASEQGANGGANGGANG {
     ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN.out.log_final.map { _meta, file -> file })
 
     //bam for pic MarkDups:
-    ch_star_bam = STAR_ALIGN.out.bam_sorted
+    ch_star_bam = STAR_ALIGN.out.bam_sorted_aligned
     // bam transcripts for saalmon.
     ch_star_bam_transcript = STAR_ALIGN.out.bam_transcript
 
@@ -204,6 +210,10 @@ workflow RNASEQGANGGANGGANG {
     }
     //ch_picard_fai = channel.value(file(params.fai))
     //ch_picard_fai = ch_samtools_fa_index
+    //
+    //Testing which channel is empty:
+    //ch_star_bam.view { "bam_sorted: $it" }
+    //ch_picard_meta2.view { "ref: $it" }
     //
     PICARD_MARKDUPLICATES(ch_star_bam, ch_picard_meta2)
     //
