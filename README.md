@@ -25,7 +25,7 @@
 - [Introduction](#introduction)
 - [Usage](#usage)
   - [Input samplesheet](#samplesheet)
-  - [Optional preprocessing steps](#skipping-preprocessing-steps)
+  - [Skipping preprocessing steps](#skipping-preprocessing-steps)
   - [Running the pipeline](#running-the-pipeline)
 - [Pipeline output](#pipeline-output)
 - [Credits](#credits)
