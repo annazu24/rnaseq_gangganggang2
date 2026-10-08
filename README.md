@@ -19,6 +19,19 @@
 
 [![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23rnaseqgangganggang-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/rnaseqgangganggang)[![Follow on Bluesky](https://img.shields.io/badge/bluesky-%40nf__core-1185fe?labelColor=000000&logo=bluesky)](https://bsky.app/profile/nf-co.re)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
 
+<--! INHALTSVERZEICHNIS -->
+## Contents
+
+- [Introduction](#introduction)
+- [Usage](#usage)
+  - [Input samplesheet](#samplesheet)
+  - [Optional preprocessing steps](#skipping-preprocessing-steps)
+  - [Running the pipeline](#running-the-pipeline)
+- [Pipeline output](#pipeline-output)
+- [Credits](#credits)
+- [Contributions and Support](#contributions-and-support)
+
+
 ## Introduction
 
 **nf-core/rnaseqgangganggang** is a bioinformatics pipeline that ...
@@ -44,7 +57,7 @@
 6. Quantification ([`Salmon`](https://salmon.readthedocs.io/en/latest/))
 7. Reference FASTA Indexing ([`SAMtools`](https://www.htslib.org/))
 8. Marking of Duplicates ([`picard MarkDuplictes`](https://broadinstitute.github.io/picard/command-line-overview.html))
-Gene-level TPM summarization ([`tximport`](https://bioconductor.org/packages/release/bioc/html/tximport.html))
+9. Gene-level TPM summarization ([`tximport`](https://bioconductor.org/packages/release/bioc/html/tximport.html))
 10. Summary QC report ([`MultiQC`](https://docs.seqera.io/multiqc/))
 
 <!-- (http://multiqc.info/) -->
@@ -56,16 +69,19 @@ Gene-level TPM summarization ([`tximport`](https://bioconductor.org/packages/rel
 <!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
      Explain what rows and columns represent. For instance (please edit as appropriate):
 -->
+
+### Samplesheet
 First, prepare a samplesheet with your input data that looks as follows:
 
 `samplesheet.csv`:
-
 ```csv
 sample,fastq_1,fastq_2
 CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 ```
 
 Each row represents a pair of fastq files (paired end).
+
+### Skip preprocessing steps
 
 If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an '-params-file' that looks as follows:
 
@@ -75,7 +91,7 @@ skip_bbsplit: true
 skip_sortmerna: true
 ```
 
-
+### Running the pipeline
 
 Now, you can run the pipeline using:
 
