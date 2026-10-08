@@ -124,6 +124,8 @@ You can test the pipeline with a existing dataset using the following command:
 
 ```bash
 nextflow run nf-core/rnaseqgangganggang \
+  -profile test,<docker/singularity> \
+  --outdir <OUTDIR>
 ```
 
 ## Pipeline output
