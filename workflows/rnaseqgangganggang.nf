@@ -20,6 +20,8 @@ include { BBMAP_BBSPLIT          } from '../modules/nf-core/bbmap/bbsplit/main'
 include { SORTMERNA              } from '../modules/nf-core/sortmerna/main'
 include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
 include { GFFREAD                } from '../modules/nf-core/gffread/main' 
+include { TXIMETA_TXIMPORT       } from '../modules/nf-core/tximeta/tximport/main' 
+include { CUSTOM_TX2GENE         } from '../modules/nf-core/custom/tx2gene/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,6 +222,20 @@ workflow RNASEQGANGGANGGANG {
     ch_pic_mark_dups_out = PICARD_MARKDUPLICATES.out.bam
     ch_multiqc_files = ch_multiqc_files.mix(PICARD_MARKDUPLICATES.out.metrics.map { _meta, file -> file })
 
+
+
+    //MODULE: Run TXIMETA_TXIMPORT
+    //
+    //INPUT
+    //
+    //meta(map, quants), meta2(map, file with mapping file), quant_type
+    ch_salmon_quants = SALMON_QUANT.out.results.map { _meta, dir -> dir }.collect().map { dirs -> [[id: 'all_samples'], dirs] }
+    
+    //CUSTOM_TX2GENE for the Gene table as import for the TXIMETA_TXIMPORT
+    ch_gtf_meta = channel.value([[id: 'genome'], file(params.gtf, checkIfExists: true)])
+    CUSTOM_TX2GENE(ch_gtf_meta, ch_salmon_quants, 'salmon', 'gene_id', 'gene_name')
+
+    TXIMETA_TXIMPORT(ch_salmon_quants, CUSTOM_TX2GENE.out.tx2gene, 'salmon')
     
 
     //
