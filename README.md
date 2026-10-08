@@ -19,14 +19,15 @@
 
 [![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23rnaseqgangganggang-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/rnaseqgangganggang)[![Follow on Bluesky](https://img.shields.io/badge/bluesky-%40nf__core-1185fe?labelColor=000000&logo=bluesky)](https://bsky.app/profile/nf-co.re)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
 
-<--! INHALTSVERZEICHNIS -->
+<!-- INHALTSVERZEICHNIS -->
 ## Contents
 
 - [Introduction](#introduction)
 - [Usage](#usage)
   - [Input samplesheet](#samplesheet)
-  - [Optional preprocessing steps](#skipping-preprocessing-steps)
+  - [Skipping preprocessing steps](#skipping-preprocessing-steps)
   - [Running the pipeline](#running-the-pipeline)
+  - [Test pipeline](#test-pipeline)
 - [Pipeline output](#pipeline-output)
 - [Credits](#credits)
 - [Contributions and Support](#contributions-and-support)
@@ -83,7 +84,7 @@ Each row represents a pair of fastq files (paired end).
 
 ### Skip preprocessing steps
 
-If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an '-params-file' that looks as follows:
+If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an `-params-file` that looks as follows:
 
 `benchmark.yml`:
 ```yaml
@@ -113,13 +114,25 @@ nextflow run nf-core/rnaseqgangganggang \
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/running/run-pipelines#using-parameter-files).
 
-For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/rnaseqgangganggang/usage) and the [parameter documentation](https://nf-co.re/rnaseqgangganggang/parameters).
+<!-- For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/rnaseqgangganggang/usage) and the [parameter documentation](https://nf-co.re/rnaseqgangganggang/parameters). -->
+
+
+
+### Test pipeline
+
+You can test the pipeline with a existing dataset using the following command:
+
+```bash
+nextflow run nf-core/rnaseqgangganggang \
+  -profile test,<docker/singularity> \
+  --outdir <OUTDIR>
+```
 
 ## Pipeline output
 
 To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/rnaseqgangganggang/results) tab on the nf-core website pipeline page.
-For more details about the output files and reports, please refer to the
-[output documentation](https://nf-co.re/rnaseqgangganggang/output).
+<!-- For more details about the output files and reports, please refer to the
+[output documentation](https://nf-co.re/rnaseqgangganggang/output). -->
 
 ## Credits
 
