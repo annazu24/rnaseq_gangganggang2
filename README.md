@@ -35,16 +35,19 @@
 ![Pipeline metro map](docs/images/metro_map.svg)
 
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 <!-- 2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/)) -->
-2. Adapter and Quality trimming (['TrimGalore!']())
-3. Removal of contaminations (['BBSplit']())
-4. Removal of rRNA (['SortMeRNA']())
-5. Multiple Alignment and Quantification (['STAR']()) and (['Salmon']())
-6. Indexing of Alignments (['SAMtools']())
-7. Marking of Duplicates (['picard MarkDuplictes']())
-8. Present QC for raw reads, ... ([`MultiQC`](http://multiqc.info/))
+1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+2. Adapter and Quality trimming ([`TrimGalore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+3. Removal of contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit))
+4. Removal of rRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmerna))
+5. Read Alignment ([`STAR`](https://github.com/alexdobin/STAR))
+6. Quantification ([`Salmon`](https://salmon.readthedocs.io/en/latest/))
+7. Reference FASTA Indexing ([`SAMtools`](https://www.htslib.org/))
+8. Marking of Duplicates ([`picard MarkDuplictes`](https://broadinstitute.github.io/picard/command-line-overview.html))
+Gene-level TPM summarization ([`tximport`](https://bioconductor.org/packages/release/bioc/html/tximport.html))
+10. Summary QC report ([`MultiQC`](https://docs.seqera.io/multiqc/))
 
+<!-- (http://multiqc.info/) -->
 ## Usage
 
 > [!NOTE]
@@ -64,8 +67,10 @@ CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 
 Each row represents a pair of fastq files (paired end).
 
-If you want you can skip Removal of genomic contaminations (['BBSplit']()) and/or Removal of ribosomalRNA (['SortMeRNA']()). Herefore you need an '-params-file' that looks as follows:
-```
+If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an '-params-file' that looks as follows:
+
+`benchmark.yml`:
+```yaml
 skip_bbsplit: true
 skip_sortmerna: true
 ```
@@ -80,12 +85,13 @@ Now, you can run the pipeline using:
 nextflow run nf-core/rnaseqgangganggang \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
-   --outdir <OUTDIR>
-   --fasta
-   --gtf
-   --rrna_fasta
-   --bbsplit_primary_ref
-   --bbsplit_other_ref
+   --outdir <OUTDIR> \
+   --fasta file.fa \
+   --gtf file.gtf \
+   --transcript_fasta transcripts.fa \
+   --rrna_fasta rrna.fa \
+   --bbsplit_primary_ref file.fa\
+   --bbsplit_other_ref contaminant.fa
 ```
 
 > [!WARNING]
