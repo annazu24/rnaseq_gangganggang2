@@ -19,6 +19,9 @@ include { PICARD_MARKDUPLICATES  } from '../modules/nf-core/picard/markduplicate
 include { BBMAP_BBSPLIT          } from '../modules/nf-core/bbmap/bbsplit/main' 
 include { SORTMERNA              } from '../modules/nf-core/sortmerna/main'
 include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
+include { GFFREAD                } from '../modules/nf-core/gffread/main' 
+include { TXIMETA_TXIMPORT       } from '../modules/nf-core/tximeta/tximport/main' 
+include { CUSTOM_TX2GENE         } from '../modules/nf-core/custom/tx2gene/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,6 +42,13 @@ workflow RNASEQGANGGANGGANG {
 
     def ch_versions = channel.empty()
     def ch_multiqc_files = channel.empty()
+
+    //
+    //read in the fasta and gtf as channels for later
+    //
+    ch_fasta = channel.value(file(params.fasta, checkIfExists: true))
+    ch_gtf   = channel.value([[id:'genome'], file(params.gtf, checkIfExists: true)])
+
     //
     // MODULE: Run FastQC
     //
@@ -56,59 +66,65 @@ workflow RNASEQGANGGANGGANG {
 
     // MODULE: Run BBSplit
     //
-    // INPUT
-    //
-    ch_bbsplit_index = channel.value([])
-    //
-    //contamination fasta:
-    // REad in Csv file and parse into single commands
-    ch_bbsplit_contam = params.bbsplit_fasta_list ? 
-        channel.value(
-            file(params.bbsplit_fasta_list)
-                .readLines()
-                .findAll { it.trim() }
-                .collect { line -> line.split(',') }
-                .with { lines ->
-                    def names = lines.collect { it[0].trim() }
-                    def paths = lines.collect { file(it[1].trim()) }
-                    return [ names, paths ]
-                }
-        ) : 
-        channel.value([ [], [] ])
+    if (!params.skip_bbsplit) {
+        // INPUT
+        //
+        ch_bbsplit_index = channel.value([])
+        //
+        //contamination fasta:
+        // REad in Csv file and parse into single commands
+        ch_bbsplit_contam = params.bbsplit_fasta_list ? 
+            channel.value(
+                file(params.bbsplit_fasta_list)
+                    .readLines()
+                    .findAll { it.trim() }
+                    .collect { line -> line.split(',') }
+                    .with { lines ->
+                        def names = lines.collect { it[0].trim() }
+                        def paths = lines.collect { file(it[1].trim()) }
+                        return [ names, paths ]
+                    }
+            ) : 
+            channel.value([ [], [] ])
 
-    //ch_bbsplit_contam = channel.value(file(params.bbsplit_fasta_list))
+        //ch_bbsplit_contam = channel.value(file(params.bbsplit_fasta_list))
 
-    //primary ref:
-    ch_bbsplit_primary_ref = channel.value(file(params.fasta))
+        //primary ref:
+        ch_bbsplit_primary_ref = channel.value(file(params.fasta))
 
-    //only build index:
-    ch_only_build_index = false
+        //only build index:
+        ch_only_build_index = false
 
-    // test:
-    // primary ref mouse chr 19
-    //contaminants list
-    //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
-    //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
+        // test:
+        // primary ref mouse chr 19
+        //contaminants list
+        //ch_bbsplit_primary_ref_mouse19 = channel.value(file(params.fasta))
+        //ch_bbsplit_contaminants_test = channel.value(file(params.bbsplit_fasta_list))
 
 
-    BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_contam, ch_only_build_index)
-    ch_bbsplit_out = BBMAP_BBSPLIT.out.primary_fastq
-    ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
-
+        BBMAP_BBSPLIT(ch_trimmed_out, ch_bbsplit_index, ch_bbsplit_primary_ref, ch_bbsplit_contam, ch_only_build_index)
+        ch_bbsplit_out = BBMAP_BBSPLIT.out.primary_fastq
+        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBSPLIT.out.stats.map { _meta, file -> file })
+    } else {
+        ch_bbsplit_out = ch_trimmed_out
+    }
 
 
     // MODULE: Run sortmerna
     //
-    // INPUT
-    //
-    //reads, fastas, index
-    ch_sortmerna_fastas = channel.value([[id:'rRNA_ref'], files(params.sortmerna_fastas, checkIfExists: true)])
-    ch_sortmerna_index = channel.value([[id:'ref'],[]])
-    //
-    SORTMERNA(ch_bbsplit_out, ch_sortmerna_fastas, ch_sortmerna_index)
-    ch_sortmerna_out = SORTMERNA.out.reads
-    ch_multiqc_files = ch_multiqc_files.mix(SORTMERNA.out.log.map { _meta, file -> file })
-
+    if(!params.skip_sortmerna){
+        // INPUT
+        //
+        //reads, fastas, index
+        ch_sortmerna_fastas = channel.value([[id:'rRNA_ref'], files(params.sortmerna_fastas, checkIfExists: true)])
+        ch_sortmerna_index = channel.value([[id:'ref'],[]])
+        //
+        SORTMERNA(ch_bbsplit_out, ch_sortmerna_fastas, ch_sortmerna_index)
+        ch_sortmerna_out = SORTMERNA.out.reads
+        ch_multiqc_files = ch_multiqc_files.mix(SORTMERNA.out.log.map { _meta, file -> file })
+    } else {
+        ch_sortmerna_out = ch_bbsplit_out
+    }
 
     // MODULE: Run star_genomegenerate
     //
@@ -138,26 +154,36 @@ workflow RNASEQGANGGANGGANG {
     ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN.out.log_final.map { _meta, file -> file })
 
     //bam for pic MarkDups:
-    ch_star_bam = STAR_ALIGN.out.bam_sorted
+    ch_star_bam = STAR_ALIGN.out.bam_sorted_aligned
     // bam transcripts for saalmon.
     ch_star_bam_transcript = STAR_ALIGN.out.bam_transcript
 
-/*
-Testen
+
 
    // MODULE: Run salmon
     //
     //INPUT
     //
+    //Gff read for the transcript_fasta
+    GFFREAD(ch_gtf, ch_fasta)
+        ch_transcript_fasta = GFFREAD.out.gffread_fasta
+        .map { _meta, fasta -> fasta }
+        .first()
+
     //reads, index, gtf, transcript_fasta
-    ch_salmon_index = channel.value([])
-    ch_salmon_gtf = channel.value(file(params.gtf))
-    ch_salmon_transcript_fasta = channel.value(file(params.transcript_fasta))
+    //ch_salmon_index = channel.value([])
+    //ch_salmon_gtf = channel.value(file(params.gtf))
+    //ch_salmon_transcript_fasta = channel.value(file(params.transcript_fasta))
+
+   ch_salmon_meta2 = GFFREAD.out.gffread_fasta.map { _meta, transcript_fasta ->
+        [[id:'genome'], [], file(params.gtf, checkIfExists: true), transcript_fasta]
+    }
 
     //
-    SALMON_QUANT(ch_star_bam_transcript, ch_salmon_index, ch_salmon_gtf, ch_salmon_transcript_fasta)
+    SALMON_QUANT(ch_star_bam_transcript, ch_salmon_meta2)
     ch_salmon_out = SALMON_QUANT.out.results
-    ch_multiqc_files = ch_multiqc_files.mix()
+    ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.results.map{ _meta, dir -> dir})
+
 
 
 
@@ -166,13 +192,14 @@ Testen
     // INPUT
     //
     // fasta, fai, get_size
-    ch_samtools_fasta = channel.value([file(params.fasta)])
-    ch_samtools_fai = channel.value([])
+    //ch_samtools_fasta = channel.value([file(params.fasta)])
+    ch_samtools_meta = channel.value([[id: 'genome'], file(params.fasta),[]])
+
+    //ch_samtools_meta = channel.value([[([])]], [(file(params.gtf))], [])
     ch_samtools_get_sizes = channel.value(false)
     //
-    SAMTOOLS_FAIDX(ch_samtools_fasta, ch_samtools_fai, ch_samtools_get_sizes)
+    SAMTOOLS_FAIDX(ch_samtools_meta, ch_samtools_get_sizes)
     ch_samtools_fa_index = SAMTOOLS_FAIDX.out.fai
-
 
 
     // MODULE: Run picard MarkDuplicates
@@ -180,18 +207,36 @@ Testen
     // INPUT
     //
     // reads fasta fai
-    ch_picard_fasta = channel.value(file(params.fasta))
+    ch_picard_meta2 = channel.value([[id: 'genome'], file(params.fasta)]).combine(SAMTOOLS_FAIDX.out.fai).map{
+        meta, fasta, _meta2, fai -> [meta, fasta, fai]
+    }
     //ch_picard_fai = channel.value(file(params.fai))
-    ch_picard_fai = ch_samtools_fa_index
+    //ch_picard_fai = ch_samtools_fa_index
     //
-    PICARD_MARKDUPLICATES(ch_star_bam, ch_picard_fasta, ch_picard_fai)
+    //Testing which channel is empty:
+    //ch_star_bam.view { "bam_sorted: $it" }
+    //ch_picard_meta2.view { "ref: $it" }
+    //
+    PICARD_MARKDUPLICATES(ch_star_bam, ch_picard_meta2)
     //
     ch_pic_mark_dups_out = PICARD_MARKDUPLICATES.out.bam
     ch_multiqc_files = ch_multiqc_files.mix(PICARD_MARKDUPLICATES.out.metrics.map { _meta, file -> file })
 
 
 
-    */
+    //MODULE: Run TXIMETA_TXIMPORT
+    //
+    //INPUT
+    //
+    //meta(map, quants), meta2(map, file with mapping file), quant_type
+    ch_salmon_quants = SALMON_QUANT.out.results.map { _meta, dir -> dir }.collect().map { dirs -> [[id: 'all_samples'], dirs] }
+    
+    //CUSTOM_TX2GENE for the Gene table as import for the TXIMETA_TXIMPORT
+    ch_gtf_meta = channel.value([[id: 'genome'], file(params.gtf, checkIfExists: true)])
+    CUSTOM_TX2GENE(ch_gtf_meta, ch_salmon_quants, 'salmon', 'gene_id', 'gene_name')
+
+    TXIMETA_TXIMPORT(ch_salmon_quants, CUSTOM_TX2GENE.out.tx2gene, 'salmon')
+    
 
     //
     // Collate and save software versions
