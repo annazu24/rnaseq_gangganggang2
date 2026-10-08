@@ -27,6 +27,7 @@
   - [Input samplesheet](#samplesheet)
   - [Skipping preprocessing steps](#skipping-preprocessing-steps)
   - [Running the pipeline](#running-the-pipeline)
+  - [Test pipeline](#test-pipeline)
 - [Pipeline output](#pipeline-output)
 - [Credits](#credits)
 - [Contributions and Support](#contributions-and-support)
@@ -83,7 +84,7 @@ Each row represents a pair of fastq files (paired end).
 
 ### Skip preprocessing steps
 
-If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an '-params-file' that looks as follows:
+If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an `-params-file` that looks as follows:
 
 `benchmark.yml`:
 ```yaml
@@ -113,13 +114,23 @@ nextflow run nf-core/rnaseqgangganggang \
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/running/run-pipelines#using-parameter-files).
 
-For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/rnaseqgangganggang/usage) and the [parameter documentation](https://nf-co.re/rnaseqgangganggang/parameters).
+<!-- For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/rnaseqgangganggang/usage) and the [parameter documentation](https://nf-co.re/rnaseqgangganggang/parameters). -->
+
+
+
+### Test pipeline
+
+You can test the pipeline with a existing dataset using the following command:
+
+```bash
+nextflow run nf-core/rnaseqgangganggang \
+```
 
 ## Pipeline output
 
 To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/rnaseqgangganggang/results) tab on the nf-core website pipeline page.
-For more details about the output files and reports, please refer to the
-[output documentation](https://nf-co.re/rnaseqgangganggang/output).
+<!-- For more details about the output files and reports, please refer to the
+[output documentation](https://nf-co.re/rnaseqgangganggang/output). -->
 
 ## Credits
 
