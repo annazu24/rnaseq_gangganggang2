@@ -22,6 +22,8 @@ include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
 include { GFFREAD                } from '../modules/nf-core/gffread/main' 
 include { TXIMETA_TXIMPORT       } from '../modules/nf-core/tximeta/tximport/main' 
 include { CUSTOM_TX2GENE         } from '../modules/nf-core/custom/tx2gene/main'
+include { GUNZIP as GUNZIP_GTF   } from '../modules/nf-core/gunzip/main'
+include { FILTER_GTF             } from '../modules/local/filter_gtf/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,7 +49,34 @@ workflow RNASEQGANGGANGGANG {
     //read in the fasta and gtf as channels for later
     //
     ch_fasta = channel.value(file(params.fasta, checkIfExists: true))
-    ch_gtf   = channel.value([[id:'genome'], file(params.gtf, checkIfExists: true)])
+    def ch_gtf
+    if (params.gtf.toString().endsWith('.gz')) {
+        GUNZIP_GTF(channel.value([[id: 'gtf'], file(params.gtf, checkIfExists: true)]))
+        ch_gtf = GUNZIP_GTF.out.gunzip.map { _meta, f -> f }
+    } else {
+        ch_gtf = channel.value(file(params.gtf, checkIfExists: true))
+    }
+
+   // MODULE: Run SAMTOOLS_FAIDX
+    //
+    // INPUT
+    //
+    // fasta, fai, get_size
+    //ch_samtools_fasta = channel.value([file(params.fasta)])
+    ch_samtools_meta = channel.value([[id: 'genome'], file(params.fasta),[]])
+
+    ch_samtools_get_sizes = channel.value(false)
+    //
+    SAMTOOLS_FAIDX(ch_samtools_meta, ch_samtools_get_sizes)
+    ch_samtools_fa_index = SAMTOOLS_FAIDX.out.fai
+
+
+    //Filter the gtf file to get rid of all the empty inputs in the gtf file
+    FILTER_GTF(
+        ch_gtf.map { gtf -> [[id: 'genome'], gtf] },
+        SAMTOOLS_FAIDX.out.fai.map { _meta, fai -> fai }
+    )
+    ch_gtf_filtered = FILTER_GTF.out.gtf.map { _meta, gtf -> gtf }
 
     //
     // MODULE: Run FastQC
@@ -132,7 +161,7 @@ workflow RNASEQGANGGANGGANG {
     //
     // fasta, gtf
     ch_star_fasta = channel.value([[id: 'ref'],file(params.fasta)])
-    ch_star_gtf = channel.value([[id: 'ref'],file(params.gtf)])
+    ch_star_gtf = ch_gtf_filtered.map { gtf -> [[id: 'ref'], gtf] }
     //
     STAR_GENOMEGENERATE(ch_star_fasta, ch_star_gtf)
     ch_star_index = STAR_GENOMEGENERATE.out.index
@@ -145,12 +174,10 @@ workflow RNASEQGANGGANGGANG {
     //
     // index, gtf, fasta reference, reads, star_ignorme ->false
     ch_star_ignore_sjdbgtf = channel.value(false)
-    ch_star_gtf = channel.value([[id: 'ref'],[file(params.gtf)]])
-    ch_star_fasta = channel.value([[id: 'ref'],file(params.fasta)])
+
     //
     STAR_ALIGN(ch_sortmerna_out, ch_star_index, ch_star_gtf, ch_star_ignore_sjdbgtf)
     //bam transcript for salmon
-    //ch_star_out = STAR_ALIGN.out.
     ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN.out.log_final.map { _meta, file -> file })
 
     //bam for pic MarkDups:
@@ -165,41 +192,20 @@ workflow RNASEQGANGGANGGANG {
     //INPUT
     //
     //Gff read for the transcript_fasta
-    GFFREAD(ch_gtf, ch_fasta)
+    GFFREAD(ch_gtf_filtered.map { gtf -> [[id: 'genome'], gtf] }, ch_fasta)
         ch_transcript_fasta = GFFREAD.out.gffread_fasta
         .map { _meta, fasta -> fasta }
         .first()
 
     //reads, index, gtf, transcript_fasta
-    //ch_salmon_index = channel.value([])
-    //ch_salmon_gtf = channel.value(file(params.gtf))
-    //ch_salmon_transcript_fasta = channel.value(file(params.transcript_fasta))
-
-   ch_salmon_meta2 = GFFREAD.out.gffread_fasta.map { _meta, transcript_fasta ->
-        [[id:'genome'], [], file(params.gtf, checkIfExists: true), transcript_fasta]
-    }
+   ch_salmon_meta2 = ch_gtf_filtered
+    .combine(GFFREAD.out.gffread_fasta.map { _meta, fasta -> fasta })
+    .map { gtf, transcript_fasta -> [[id: 'genome'], [], gtf, transcript_fasta] }
 
     //
     SALMON_QUANT(ch_star_bam_transcript, ch_salmon_meta2)
     ch_salmon_out = SALMON_QUANT.out.results
     ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.results.map{ _meta, dir -> dir})
-
-
-
-
-    // MODULE: Run SAMTOOLS_FAIDX
-    //
-    // INPUT
-    //
-    // fasta, fai, get_size
-    //ch_samtools_fasta = channel.value([file(params.fasta)])
-    ch_samtools_meta = channel.value([[id: 'genome'], file(params.fasta),[]])
-
-    //ch_samtools_meta = channel.value([[([])]], [(file(params.gtf))], [])
-    ch_samtools_get_sizes = channel.value(false)
-    //
-    SAMTOOLS_FAIDX(ch_samtools_meta, ch_samtools_get_sizes)
-    ch_samtools_fa_index = SAMTOOLS_FAIDX.out.fai
 
 
     // MODULE: Run picard MarkDuplicates
@@ -232,7 +238,7 @@ workflow RNASEQGANGGANGGANG {
     ch_salmon_quants = SALMON_QUANT.out.results.map { _meta, dir -> dir }.collect().map { dirs -> [[id: 'all_samples'], dirs] }
     
     //CUSTOM_TX2GENE for the Gene table as import for the TXIMETA_TXIMPORT
-    ch_gtf_meta = channel.value([[id: 'genome'], file(params.gtf, checkIfExists: true)])
+    ch_gtf_meta = ch_gtf_filtered.map { gtf -> [[id: 'genome'], gtf]}
     CUSTOM_TX2GENE(ch_gtf_meta, ch_salmon_quants, 'salmon', 'gene_id', 'gene_name')
 
     TXIMETA_TXIMPORT(ch_salmon_quants, CUSTOM_TX2GENE.out.tx2gene, 'salmon')

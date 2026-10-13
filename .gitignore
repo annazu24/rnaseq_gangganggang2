@@ -9,5 +9,11 @@ testing*
 null/
 .lineage/
 assets/reference/Mus_musculus*/
+assets/reference/Mus_musculus*.fa
+assets/reference/Mus_musculus*.gtf
 test_results/
-results_test/
+test_results_skip_bbsplit/
+test_results_skip_sortmerna/
+test_results_skip_both/
+results_bigger01/
+results_skip_bbsplit/

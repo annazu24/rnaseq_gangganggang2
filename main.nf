@@ -90,11 +90,11 @@ workflow {
     ch_samplesheet = channel.fromPath(params.input)
         .splitCsv(header: true)
         .map { row ->
-            def meta  = [id: row.sample, strandedness: row.strandedness]
-            def reads = [
-                file(row.fastq_1, checkIfExists: true),
-                file(row.fastq_2, checkIfExists: true)
-            ]
+            def single_end = !row.fastq_2
+            def meta = [id: row.sample, single_end: single_end, strandedness: row.strandedness ?: 'auto']
+            def reads = single_end
+                ? [file(row.fastq_1, checkIfExists: true)]
+                : [file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true)]
             [meta, reads]
         }
 
