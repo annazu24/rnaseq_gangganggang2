@@ -200,7 +200,7 @@ workflow RNASEQGANGGANGGANG {
     //reads, index, gtf, transcript_fasta
    ch_salmon_meta2 = ch_gtf_filtered
     .combine(GFFREAD.out.gffread_fasta.map { _meta, fasta -> fasta })
-    .map { gtf, transcript_fasta -> [[id: 'genome'], [], gtf, transcript_fasta] }
+    .map { gtf, transcript_fasta -> [[id: 'genome'], [], gtf, transcript_fasta] }.first()
 
     //
     SALMON_QUANT(ch_star_bam_transcript, ch_salmon_meta2)
@@ -215,7 +215,7 @@ workflow RNASEQGANGGANGGANG {
     // reads fasta fai
     ch_picard_meta2 = channel.value([[id: 'genome'], file(params.fasta)]).combine(SAMTOOLS_FAIDX.out.fai).map{
         meta, fasta, _meta2, fai -> [meta, fasta, fai]
-    }
+    }.first()
     //ch_picard_fai = channel.value(file(params.fai))
     //ch_picard_fai = ch_samtools_fa_index
     //
