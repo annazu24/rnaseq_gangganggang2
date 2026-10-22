@@ -72,11 +72,15 @@ workflow RNASEQGANGGANGGANG {
 
 
     //Filter the gtf file to get rid of all the empty inputs in the gtf file
+    if (!params.skip_gtf_filter) {
     FILTER_GTF(
         ch_gtf.map { gtf -> [[id: 'genome'], gtf] },
         SAMTOOLS_FAIDX.out.fai.map { _meta, fai -> fai }
     )
     ch_gtf_filtered = FILTER_GTF.out.gtf.map { _meta, gtf -> gtf }
+    } else {
+    ch_gtf_filtered = ch_gtf
+    }
 
     //
     // MODULE: Run FastQC
