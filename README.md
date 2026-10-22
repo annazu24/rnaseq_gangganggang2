@@ -19,14 +19,15 @@
 
 [![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23rnaseqgangganggang-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/rnaseqgangganggang)[![Follow on Bluesky](https://img.shields.io/badge/bluesky-%40nf__core-1185fe?labelColor=000000&logo=bluesky)](https://bsky.app/profile/nf-co.re)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
 
-<--! INHALTSVERZEICHNIS -->
+<!-- INHALTSVERZEICHNIS -->
 ## Contents
 
 - [Introduction](#introduction)
 - [Usage](#usage)
   - [Input samplesheet](#samplesheet)
-  - [Optional preprocessing steps](#skipping-preprocessing-steps)
+  - [Skipping preprocessing steps](#skipping-preprocessing-steps)
   - [Running the pipeline](#running-the-pipeline)
+  - [Test pipeline](#test-pipeline)
 - [Pipeline output](#pipeline-output)
 - [Credits](#credits)
 - [Contributions and Support](#contributions-and-support)
@@ -34,21 +35,12 @@
 
 ## Introduction
 
-**nf-core/rnaseqgangganggang** is a bioinformatics pipeline that ...
+**nf-core/rnaseqgangganggang** is a bioinformatics pipeline that analysis paired-end RNA-seq data. The pipeline performs read quality control, adapter trimming, removal of genomic contaminants and rRNA, STAR alignment, duplicate marking, transcript quantification with Salmon, and gene-level TPM summarization. Quality-control metrics are summarized in a MultiQC report.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/community/brand/workflow-schematics#examples for examples.   -->
 
 ![Pipeline metro map](docs/images/metro_map.svg)
 
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-<!-- 2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/)) -->
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter and Quality trimming ([`TrimGalore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
 3. Removal of contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit))
@@ -66,9 +58,6 @@
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/get_started/environment_setup/overview) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/get_started/run-your-first-pipeline) with `-profile test` before running the workflow on actual data.
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
--->
 
 ### Samplesheet
 First, prepare a samplesheet with your input data that looks as follows:
@@ -83,7 +72,7 @@ Each row represents a pair of fastq files (paired end).
 
 ### Skip preprocessing steps
 
-If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an '-params-file' that looks as follows:
+If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an `-params-file` that looks as follows:
 
 `benchmark.yml`:
 ```yaml
@@ -95,7 +84,6 @@ skip_sortmerna: true
 
 Now, you can run the pipeline using:
 
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
 
 ```bash
 nextflow run nf-core/rnaseqgangganggang \
@@ -113,21 +101,37 @@ nextflow run nf-core/rnaseqgangganggang \
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/running/run-pipelines#using-parameter-files).
 
-For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/rnaseqgangganggang/usage) and the [parameter documentation](https://nf-co.re/rnaseqgangganggang/parameters).
+<!-- For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/rnaseqgangganggang/usage) and the [parameter documentation](https://nf-co.re/rnaseqgangganggang/parameters). -->
+
+
+
+### Test pipeline
+
+You can test the pipeline with a existing dataset using the following command:
+
+```bash
+nextflow run nf-core/rnaseqgangganggang \
+  -profile test,<docker/singularity> \
+  --outdir <OUTDIR>
+```
 
 ## Pipeline output
 
-To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/rnaseqgangganggang/results) tab on the nf-core website pipeline page.
-For more details about the output files and reports, please refer to the
-[output documentation](https://nf-co.re/rnaseqgangganggang/output).
+All pipeline results are written to the directory specified with --outdir.
+
+The output includes quality-control reports, alignment files, duplicate-marked BAM files, Salmon quantification results, and the final gene-level TPM table.
+
+<!-- To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/rnaseqgangganggang/results) tab on the nf-core website pipeline page.
+ For more details about the output files and reports, please refer to the
+[output documentation](https://nf-co.re/rnaseqgangganggang/output). -->
 
 ## Credits
 
-nf-core/rnaseqgangganggang was originally written by peter, anna.
+nf-core/rnaseqgangganggang was originally written by peter and anna.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+Laura (loperalaura), Saniya (saniyakhann), Mark (mapo9), Julian (JulianFlesch)
 
 ## Contributions and Support
 
@@ -137,10 +141,6 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use nf-core/rnaseqgangganggang for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
