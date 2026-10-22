@@ -72,7 +72,7 @@ Each row represents a pair of fastq files (paired end).
 
 ### Skip preprocessing steps
 
-If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmernav)). Herefore you need an `-params-file` that looks as follows:
+If you want you can skip Removal of genomic contaminations ([`BBSplit`](https://bbmap.org/tools/bbsplit)) and/or Removal of ribosomalRNA ([`SortMeRNA`](https://github.com/sortmerna/sortmerna)). Herefore you need an `-params-file` that looks as follows:
 
 `benchmark.yml`:
 ```yaml
