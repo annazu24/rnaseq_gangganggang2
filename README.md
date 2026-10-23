@@ -122,7 +122,7 @@ All pipeline results are written to the directory specified with --outdir.
 The output includes quality-control reports, alignment files, duplicate-marked BAM files, Salmon quantification results, and the final gene-level TPM table with a PCA plot and a sample-to-sample distance plot from that TPM table. Example Plots are shown below from out test profile run.
 
 <p align="center">
-  <img src="docs/images/all_samples_tpm_overview_test_docker_pca.png" alt="PCA example plot" width="45%">
+  <img src="docs/images/all_samples_tpm_overview_test_docker_pca.png" alt="PCA example plot" width="50%">
   <img src="docs/images/all_samples_tpm_overview_test_docker_distance.png" alt="Sample-to-sample distance plot" width="45%">
 </p>
 
