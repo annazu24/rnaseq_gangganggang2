@@ -33,7 +33,7 @@ def set_titles(ax, title):
         ax.set_title(title)
 
 # PCA to see if samples are differentiable
-fig, ax = plt.subplots(figsize=(6, 4.8))
+fig, ax = plt.subplots(figsize=(6.5, 5.5))
 x = logx.loc[logx.var(axis=1) > 0]
 pca = PCA(n_components=2)
 pcs = pca.fit_transform(x.T)
