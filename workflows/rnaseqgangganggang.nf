@@ -24,7 +24,7 @@ include { TXIMETA_TXIMPORT       } from '../modules/nf-core/tximeta/tximport/mai
 include { CUSTOM_TX2GENE         } from '../modules/nf-core/custom/tx2gene/main'
 include { GUNZIP as GUNZIP_GTF   } from '../modules/nf-core/gunzip/main'
 include { FILTER_GTF             } from '../modules/local/filter_gtf/main'
-
+include { TPM_PLOTS              } from '../modules/local/tpm_plots/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -247,6 +247,9 @@ workflow RNASEQGANGGANGGANG {
 
     TXIMETA_TXIMPORT(ch_salmon_quants, CUSTOM_TX2GENE.out.tx2gene, 'salmon')
     
+
+    //Create the plots from the created TPM table with python skript
+    TPM_PLOTS(TXIMETA_TXIMPORT.out.tpm_gene)
 
     //
     // Collate and save software versions
