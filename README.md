@@ -122,8 +122,8 @@ All pipeline results are written to the directory specified with --outdir.
 The output includes quality-control reports, alignment files, duplicate-marked BAM files, Salmon quantification results, and the final gene-level TPM table with a PCA plot and a sample-to-sample distance plot from that TPM table. Example Plots are shown below from out test profile run.
 
 <p align="center">
-  <img src="docs/images/all_samples_tpm_overview_test_docker_pca.png" alt="PCA example plot" height="45%">
-  <img src="docs/images/all_samples_tpm_overview_test_docker_distance.png" alt="Sample-to-sample distance plot" height="45%">
+  <img src="docs/images/all_samples_tpm_overview_test_docker_pca.png" alt="PCA example plot" width=400>
+  <img src="docs/images/all_samples_tpm_overview_test_docker_distance.png" alt="Sample-to-sample distance plot" width=400>
 </p>
 
 <!-- To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/rnaseqgangganggang/results) tab on the nf-core website pipeline page.
