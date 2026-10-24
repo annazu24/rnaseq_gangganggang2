@@ -9,7 +9,7 @@ template:
   name: rnaseqgangganggang
   description: blabla
   author: peter, anna
-  version: 1.0.0dev
+  version: 1.0.0
   force: true
   outdir: .
   skip_features:
