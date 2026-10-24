@@ -82,11 +82,11 @@ skip_sortmerna: true
 
 ### Running the pipeline
 
-Now, you can run the pipeline using:
+Now, you can run the pipeline from your working directory using:
 
 
 ```bash
-nextflow run nf-core/rnaseqgangganggang \
+nextflow run . \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --outdir <OUTDIR> \
@@ -107,10 +107,10 @@ nextflow run nf-core/rnaseqgangganggang \
 
 ### Test pipeline
 
-You can test the pipeline with a existing dataset using the following command:
+You can test the pipeline with a existing dataset using the following command from your working directory:
 
 ```bash
-nextflow run nf-core/rnaseqgangganggang \
+nextflow run . \
   -profile test,<docker/singularity> \
   --outdir <OUTDIR>
 ```
@@ -119,7 +119,12 @@ nextflow run nf-core/rnaseqgangganggang \
 
 All pipeline results are written to the directory specified with --outdir.
 
-The output includes quality-control reports, alignment files, duplicate-marked BAM files, Salmon quantification results, and the final gene-level TPM table.
+The output includes quality-control reports, alignment files, duplicate-marked BAM files, Salmon quantification results, and the final gene-level TPM table with a PCA plot and a sample-to-sample distance plot from that TPM table. Example Plots are shown below from out test profile run.
+
+<p align="center">
+  <img src="docs/images/all_samples_tpm_overview_test_docker_pca.png" alt="PCA example plot" height="300">
+  <img src="docs/images/all_samples_tpm_overview_test_docker_distance.png" alt="Sample-to-sample distance plot" height="300">
+</p>
 
 <!-- To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/rnaseqgangganggang/results) tab on the nf-core website pipeline page.
  For more details about the output files and reports, please refer to the
